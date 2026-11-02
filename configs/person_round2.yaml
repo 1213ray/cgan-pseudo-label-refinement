@@ -1,0 +1,10 @@
+# Stage 4：labeled + cGAN 校正後的偽標籤，訓練下一輪教師模型。
+# datasets/calibrated/ 由 cgan/inference.py --copy-images 產生（images/、labels/）。
+path: datasets
+train:
+  - person/part1/images
+  - calibrated/images
+val: person/part2/images
+
+names:
+  0: person

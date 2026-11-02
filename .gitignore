@@ -1,0 +1,13 @@
+# Data, training runs and weights are not stored in the repository
+datasets/
+runs/
+wandb/
+*.pt
+*.pth
+generator_diagnosis.png
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

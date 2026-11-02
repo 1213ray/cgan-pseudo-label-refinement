@@ -1,0 +1,12 @@
+torch>=2.0
+torchvision>=0.15
+timm>=0.9          # Swin Transformer encoder
+ultralytics>=8.1   # YOLOv8 teacher, K-fold and two-stage pseudo-labeling
+pycocotools        # pipeline/01_coco_to_yolo.py
+scikit-learn       # K-fold split
+numpy
+pillow
+pyyaml
+tqdm
+matplotlib
+# Optional: wandb  (set wandb.enabled: true in cgan/config.yaml)

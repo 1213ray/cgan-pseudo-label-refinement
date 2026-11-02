@@ -1,0 +1,8 @@
+# YOLO 資料設定（02_split_dataset.py 的輸出）。
+# path 相對於執行指令的資料夾，請在 repo 根目錄執行各腳本。
+path: datasets/person
+train: part1/images   # labeled（有標註的訓練集）
+val: part2/images     # 驗證集
+
+names:
+  0: person

@@ -1,0 +1,83 @@
+# =================================================
+# config.yaml  —  Enhanced hyper‑parameters with SN+R1+Hinge
+# Architecture: Swin-UNet Generator + Projection PatchGAN Discriminator
+# =================================================
+img_size: 224 # 圖像大小 (Swin-UNet需要224x224)
+batch_size: 128 # 批次大小 (優化後，24GB顯存可支持)
+n_epochs: 500 # 訓練 epoch 數量
+lr_g: 0.0002  # 生成器學習率
+lr_d: 0.0001  # 判別器學習率 (與生成器相同以提升穩定性)
+beta1: 0.0 # Adam 優化器參數 beta1 (更穩定的設置)
+beta2: 0.999 # Adam 優化器參數 beta2
+
+# Loss configuration
+lambda_iou: 1.0 # EIoU 損失權重 (提高EIoU權重，鼓勵更積極的幾何改善)
+
+spectral_norm: true # 是否使用譜範數 (SN+R1+Hinge強制啟用)
+pretrained: true # 是否使用預訓練的Swin Transformer
+early_stop: # 早停設定
+  patience: 50 # 早停耐心值 (進一步增加耐心，給模型更多學習時間)
+  min_delta: 0.0001 # 早停最小 delta (進一步降低閾值，允許更微小的改善)
+train_split: 0.9 # 訓練集分割比例
+val_split: 0.1 # 驗證集分割比例
+save_dir: runs/cgan # 模型儲存目錄（相對於執行指令的資料夾）
+seed: 42 # 隨機種子
+iou_threshold: 0.25 # IoU 閾值用於匹配預測框與真實框 (降低閾值，包含更多需要校正的樣本)
+data_dir: datasets/cgan_train_set # 資料集根目錄（pipeline/05_build_cgan_dataset.py 的輸出）
+
+# SN+R1+Hinge 參數配置 (替代WGAN-GP)
+gan_mode: "hinge" # GAN損失模式: "hinge" 
+lambda_r1: 0.1 # R1正則化權重 (微調以適應簡化架構，223*0.05≈11)
+lambda_adv: 1.0 # 對抗損失權重 (恢復適量的對抗平衡)
+r1_every: 32 # R1正則化計算頻率 (還原原值)
+n_critic: 1 # 判別器更新次數 (1:1更新比例)
+
+# Swin-UNet 特定參數
+swin_config:
+  model_name: "swin_tiny_patch4_window7_224"  # Swin Transformer 模型名稱
+  input_size: 224  # 輸入圖像大小 (Swin需要224x224)
+  patch_size: 4    # Patch大小
+  window_size: 7   # 窗口大小
+
+# Delta 應用參數配置
+delta_clamp_range: 2.0 # Delta 限制範圍 - 增加以避免過度截斷
+bbox_bounds: # 邊界框邊界值 - 放寬限制以避免過度截斷
+  cx_min: 0.01
+  cx_max: 0.99
+  cy_min: 0.01
+  cy_max: 0.99
+  w_min: 0.01
+  w_max: 0.98
+  h_min: 0.01
+  h_max: 0.98
+
+# Training configuration (優化後的配置)
+training:
+  cache_max_size: 300  # 圖像緩存最大大小 (優化後增加)
+  num_workers: 6  # DataLoader工作進程數 (根據12核CPU優化)
+  gradient_clip_max_norm: 1.0  # 梯度裁剪最大範數
+  save_image_freq: 10  # 每多少個epoch保存一次樣本圖像
+  use_bf16: true  # 啟用 bf16 混合精度訓練
+  pin_memory: true  # 啟用內存固定，加速CPU-GPU傳輸
+  persistent_workers: true  # 保持工作進程活躍，減少重啟開銷
+  prefetch_factor: 4  # 預取因子，每個worker預取更多批次
+  
+# Numerical constants
+numerical:
+  eps: 1e-6  # 數值穩定性常量
+  smooth_clamp_temperature: 0.5  # 平滑裁剪溫度參數
+  
+# Learning rate scheduler configuration
+scheduler:
+  factor: 0.5  # 學習率衰減因子
+  patience: 5  # 學習率調度器耐心值
+
+# W&B configuration
+wandb:
+  enabled: false  # 改成 true 並先執行 wandb login，即可把訓練過程記錄到 Weights & Biases
+  project: "cgan-calibration"
+  entity: null  # 可以設置為你的wandb username
+  name: test_1  # 會自動生成run名稱
+  tags: ["cgan", "pseudo-label", "calibration", "sn", "r1", "hinge"]
+  notes: "CGAN training with SN+R1+Hinge for pseudo-label calibration"
+  log_freq: 100  # W&B模型監控頻率
